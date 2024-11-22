@@ -1,8 +1,11 @@
 package com.example.demo.reports;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.example.demo.entity.Funcionario;
 import com.example.demo.repository.FuncionarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
@@ -12,6 +15,12 @@ public class DashboardService {
     @Autowired
     private FuncionarioRepository funcionarioRepository;
 
+    // Paginação de funcionários
+    public Page<Funcionario> getFuncionariosPaginados(Pageable pageable) {
+        return funcionarioRepository.findAll(pageable);
+    }
+
+    // Dados agregados para o dashboard
     public Map<String, Object> getDadosDashboard() {
         Map<String, Object> dados = new HashMap<>();
 

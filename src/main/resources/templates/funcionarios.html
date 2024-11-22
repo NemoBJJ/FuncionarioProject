@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Funcionários</title>
+</head>
+<body>
+    <h1>Lista de Funcionários</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Cargo</th>
+                <th>Salário</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop sobre os funcionários -->
+            <tr th:each="funcionario : ${page.content}">
+                <td th:text="${funcionario.nome}"></td>
+                <td th:text="${funcionario.cargo}"></td>
+                <td th:text="${funcionario.salario}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Paginação -->
+    <div>
+        <span th:text="'Página: ' + ${page.number + 1} + ' de ' + ${page.totalPages}"></span>
+        <a th:if="${!page.first}" th:href="@{/funcionarios(page=${page.number - 1}, size=${page.size})}">Anterior</a>
+        <a th:if="${!page.last}" th:href="@{/funcionarios(page=${page.number + 1}, size=${page.size})}">Próxima</a>
+    </div>
+</body>
+</html>

@@ -16,6 +16,7 @@ public class DashBoardController {
     @Autowired
     private DashboardService dashboardService;
 
+    // Endpoint para obter dados do dashboard
     @GetMapping
     public ResponseEntity<Map<String, Object>> getDashboardDados() {
         Map<String, Object> dados = dashboardService.getDadosDashboard();
