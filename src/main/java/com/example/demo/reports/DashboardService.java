@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.repository.FuncionarioRepository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class DashboardService {
@@ -17,26 +15,18 @@ public class DashboardService {
     public Map<String, Object> getDadosDashboard() {
         Map<String, Object> dados = new HashMap<>();
 
-        // Obter quantidade de funcionários por cargo
-        List<Object[]> cargos = funcionarioRepository.findFuncionariosPorCargo();
-        List<Map<String, Object>> listaCargos = cargos.stream().map(cargo -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("cargo", cargo[0]);
-            map.put("quantidade", cargo[1]);
-            return map;
-        }).toList();
-        dados.put("cargos", listaCargos);
+        // Consulta ao banco para obter os dados dos cargos
+        List<Object[]> cargosFromDb = funcionarioRepository.findFuncionariosPorCargo();
+        List<Map<String, Object>> cargos = new ArrayList<>();
 
-        // Obter média salarial por departamento
-        List<Object[]> salarios = funcionarioRepository.findMediaSalarialPorDepartamento();
-        List<Map<String, Object>> listaSalarios = salarios.stream().map(salario -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("departamento", salario[0]);
-            map.put("mediaSalarial", salario[1]);
-            return map;
-        }).toList();
-        dados.put("salarios", listaSalarios);
+        for (Object[] cargo : cargosFromDb) {
+            Map<String, Object> cargoData = new HashMap<>();
+            cargoData.put("cargo", cargo[0]); // Nome do cargo
+            cargoData.put("quantidade", cargo[1]); // Quantidade de funcionários
+            cargos.add(cargoData);
+        }
 
+        dados.put("cargos", cargos); // Adiciona a lista de cargos no mapa de dados
         return dados;
     }
 }

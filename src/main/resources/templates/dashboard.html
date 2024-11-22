@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- CDN do Chart.js -->
+</head>
+<body>
+    <h1>Dashboard de Funcionários</h1>
+
+    <!-- Gráfico de pizza para distribuição de cargos -->
+    <h2>Distribuição de Funcionários por Cargo</h2>
+    <canvas id="cargoChart" width="400" height="200"></canvas>
+
+    <script>
+        // Thymeleaf injeta os dados como JSON diretamente (string JSON)
+        const dadosString = "{\"cargos\":[{\"cargo\":\"Analista\",\"quantidade\":1},{\"cargo\":\"Desenvolvedora\",\"quantidade\":1},{\"cargo\":\"Engenheiro de Software\",\"quantidade\":2},{\"cargo\":\"Analista de Dados\",\"quantidade\":1},{\"cargo\":\"Gerente de Projetos\",\"quantidade\":2},{\"cargo\":\"Product Owner\",\"quantidade\":1},{\"cargo\":\"Scrum Master\",\"quantidade\":2},{\"cargo\":\"Desenvolvedora Frontend\",\"quantidade\":1},{\"cargo\":\"Desenvolvedor Backend\",\"quantidade\":2},{\"cargo\":\"UX Designer\",\"quantidade\":1},{\"cargo\":\"Administrador de Banco de Dados\",\"quantidade\":2},{\"cargo\":\"Analista de Marketing Digital\",\"quantidade\":1},{\"cargo\":\"Engenheiro DevOps\",\"quantidade\":2},{\"cargo\":\"Engenheira de Dados\",\"quantidade\":1},{\"cargo\":\"Cientista de Dados\",\"quantidade\":2},{\"cargo\":\"Analista de BI\",\"quantidade\":3},{\"cargo\":\"Administrador de Sistemas\",\"quantidade\":2},{\"cargo\":\"Especialista em Segurança da Informação\",\"quantidade\":1},{\"cargo\":\"Analista de Sistemas\",\"quantidade\":1},{\"cargo\":\"Desenvolvedor Mobile\",\"quantidade\":1},{\"cargo\":\"Analista de Redes\",\"quantidade\":1},{\"cargo\":\"Engenheira de Segurança\",\"quantidade\":1},{\"cargo\":\"Gerente de TI\",\"quantidade\":1},{\"cargo\":\"Desenvolvedor Full Stack\",\"quantidade\":1},{\"cargo\":\"Analista de Infraestrutura\",\"quantidade\":1},{\"cargo\":\"Designer Gráfico\",\"quantidade\":1},{\"cargo\":\"Administrador de Redes\",\"quantidade\":1},{\"cargo\":\"Desenvolvedor iOS\",\"quantidade\":1},{\"cargo\":\"Desenvolvedora Android\",\"quantidade\":1},{\"cargo\":\"Arquiteto de Software\",\"quantidade\":1},{\"cargo\":\"Tester QA\",\"quantidade\":1},{\"cargo\":\"Engenheiro de Machine Learning\",\"quantidade\":1},{\"cargo\":\"Consultor de TI\",\"quantidade\":1},{\"cargo\":\"Especialista em Cloud\",\"quantidade\":1},{\"cargo\":\"Engenheiro de Dados\",\"quantidade\":1},{\"cargo\":\"Analista de SEO\",\"quantidade\":1},{\"cargo\":\"Especialista em Segurança\",\"quantidade\":1},{\"cargo\":\"Desenvolvedor Frontend\",\"quantidade\":1},{\"cargo\":\"UX Researcher\",\"quantidade\":1},{\"cargo\":\"Marketing\",\"quantidade\":34},{\"cargo\":\"Infraestrutura\",\"quantidade\":33},{\"cargo\":\"TI\",\"quantidade\":33}]}";
+
+        // Converte a string JSON em um objeto JavaScript
+        const dados = JSON.parse(dadosString);
+        console.log("Dados recebidos do backend:", dados);
+
+        // Verifica se os dados estão presentes
+        if (dados && dados.cargos && Array.isArray(dados.cargos) && dados.cargos.length > 0) {
+            const cargos = dados.cargos;
+
+            // Configuração do gráfico de pizza
+            const ctxCargos = document.getElementById('cargoChart').getContext('2d');
+            new Chart(ctxCargos, {
+                type: 'pie',
+                data: {
+                    labels: cargos.map(c => c.cargo || "Indefinido"),
+                    datasets: [{
+                        data: cargos.map(c => c.quantidade || 0),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56',
+                            '#4BC0C0', '#9966FF', '#FF9F40'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        } else {
+            console.error("Nenhum dado encontrado para cargos. Verifique o backend.");
+            alert("Não há dados disponíveis para exibir o gráfico.");
+        }
+    </script>
+</body>
+</html>
