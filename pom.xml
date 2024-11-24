@@ -86,6 +86,21 @@
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-security</artifactId>
      </dependency>
+       <!-- Manipulação de CSV  -->
+      <dependency>
+    <groupId>com.opencsv</groupId>
+    <artifactId>opencsv</artifactId>
+    <version>5.7.1</version>
+      </dependency>
+      <!-- Servlet   -->
+    <dependency>
+    <groupId>jakarta.servlet</groupId>
+    <artifactId>jakarta.servlet-api</artifactId>
+    <version>6.0.0</version>
+    <scope>provided</scope>
+</dependency>
+
+
 
     </dependencies>
 
