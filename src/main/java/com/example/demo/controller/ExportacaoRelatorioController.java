@@ -7,6 +7,9 @@ import com.example.demo.reports.RelatorioService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -27,12 +30,14 @@ public class ExportacaoRelatorioController {
 
     @GetMapping("/cargos/csv")
     public void exportRelatoriosPorCargoCSV(HttpServletResponse response) throws IOException {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"));
         response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"relatorios_cargos.csv\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"relatorios_cargos_" + timestamp + ".csv\"");
 
         List<RelatorioCargo> relatorios = relatorioService.obterRelatoriosPorCargo();
         csvExporter.exportRelatoriosPorCargo(relatorios, response.getWriter());
     }
+
 
     @GetMapping("/departamentos/csv")
     public void exportRelatoriosPorDepartamentoCSV(HttpServletResponse response) throws IOException {

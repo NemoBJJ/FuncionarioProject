@@ -15,7 +15,8 @@ public class CSVExporter {
     public void exportRelatoriosPorCargo(List<RelatorioCargo> relatorios, PrintWriter writer) throws IOException {
         try (CSVWriter csvWriter = new CSVWriter(writer)) {
             // Header
-            csvWriter.writeNext(new String[]{"Cargo", "Quantidade de Funcionários"});
+        	csvWriter.writeNext(new String[]{"CARGO", "QUANTIDADE_DE_FUNCIONÁRIOS"});
+
             // Dados
             for (RelatorioCargo relatorio : relatorios) {
                 csvWriter.writeNext(new String[]{
