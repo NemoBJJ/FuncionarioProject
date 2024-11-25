@@ -17,4 +17,5 @@ public class CacheConfig {
         cacheManager.setCacheNames(Arrays.asList("relatoriosPorCargo", "relatoriosPorDepartamento"));
         return cacheManager;
     }
+    
 }
