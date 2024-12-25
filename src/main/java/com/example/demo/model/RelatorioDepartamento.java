@@ -1,10 +1,17 @@
 package com.example.demo.model;
 
+import java.math.BigDecimal;
+
 public class RelatorioDepartamento {
     private String departamento;
-    private Double somaSalarios;
+    private BigDecimal somaSalarios;
 
-    public RelatorioDepartamento(String departamento, Double somaSalarios) {
+    // Construtor padrão necessário para o Hibernate
+    public RelatorioDepartamento() {
+    }
+
+    // Construtor utilizado na consulta JPQL
+    public RelatorioDepartamento(String departamento, BigDecimal somaSalarios) {
         this.departamento = departamento;
         this.somaSalarios = somaSalarios;
     }
@@ -18,11 +25,19 @@ public class RelatorioDepartamento {
         this.departamento = departamento;
     }
 
-    public Double getSomaSalarios() {
+    public BigDecimal getSomaSalarios() {
         return somaSalarios;
     }
 
-    public void setSomaSalarios(Double somaSalarios) {
+    public void setSomaSalarios(BigDecimal somaSalarios) {
         this.somaSalarios = somaSalarios;
+    }
+
+    @Override
+    public String toString() {
+        return "RelatorioDepartamento{" +
+                "departamento='" + departamento + '\'' +
+                ", somaSalarios=" + somaSalarios +
+                '}';
     }
 }

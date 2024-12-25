@@ -1,7 +1,9 @@
 package com.example.demo.entity;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,25 +13,30 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "funcionarios")
 public class Funcionario {
-	 @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private Long id;
 
-	    private String nome;
-	    private String cargo;
-	    private Double salario;
-	    private String departamento;
-	    private LocalDate dataAdmissao;
-	    private LocalDate dataNascimento;
-	    private String cidade;
-	    private String estado;
-	    private String statusEmprego;
-	    private String email;
-	    private String telefone;
-	    private String nivelExperiencia;
-	    private String sexo;
-	    private String gestorDireto;
-	    private Double bonus;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nome;
+    private String cargo;
+
+    @Column(name = "salario (R$)", precision = 19, scale = 2) // Ajuste conforme necessário
+    private BigDecimal salario;
+
+
+    private String departamento;
+    private LocalDate dataAdmissao;
+    private LocalDate dataNascimento;
+    private String cidade;
+    private String estado;
+    private String statusEmprego;
+    private String email;
+    private String telefone;
+    private String nivelExperiencia;
+    private String sexo;
+    private String gestorDireto;
+    private Double bonus;
 
     // Getters e Setters
     public Long getId() {
@@ -56,14 +63,14 @@ public class Funcionario {
         this.cargo = cargo;
     }
 
-    public Double getSalario() {
+    public BigDecimal getSalario() {
         return salario;
     }
 
-    public void setSalario(Double salario) {
+    public void setSalario(BigDecimal salario) {
         this.salario = salario;
     }
-    
+
     public String getDepartamento() {
         return departamento;
     }
@@ -159,5 +166,4 @@ public class Funcionario {
     public void setBonus(Double bonus) {
         this.bonus = bonus;
     }
-
 }
