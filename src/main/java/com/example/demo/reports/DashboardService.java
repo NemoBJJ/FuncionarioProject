@@ -1,13 +1,17 @@
 package com.example.demo.reports;
 
 import com.example.demo.entity.Funcionario;
+import com.example.demo.model.FuncionarioSalarioDTO;
 import com.example.demo.repository.FuncionarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 @Service
 public class DashboardService {
@@ -18,6 +22,16 @@ public class DashboardService {
     // Paginação de funcionários
     public Page<Funcionario> getFuncionariosPaginados(Pageable pageable) {
         return funcionarioRepository.findAll(pageable);
+    }
+
+    // Paginação de funcionários com salário
+    public Page<FuncionarioSalarioDTO> getFuncionariosComSalario(Pageable pageable) {
+        return funcionarioRepository.findFuncionariosComSalario(pageable);
+    }
+
+    // Busca todos os funcionários (sem paginação)
+    public List<Funcionario> getTodosFuncionarios() {
+        return funcionarioRepository.findAll();
     }
 
     // Dados agregados para o dashboard

@@ -18,6 +18,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Desabilita CSRF
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/funcionarios/salario/**").permitAll() // Libera o endpoint de salários
                 .requestMatchers("/dashboard/**", "/relatorios/**").authenticated() // Rotas protegidas
                 .anyRequest().permitAll() // Outras rotas liberadas
             )

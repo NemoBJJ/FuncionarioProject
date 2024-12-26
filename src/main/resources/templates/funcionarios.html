@@ -2,33 +2,92 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Funcionários</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .pagination a {
+            padding: 5px 10px;
+            border: 1px solid #000;
+            text-decoration: none;
+            color: #000;
+        }
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+    </style>
 </head>
 <body>
     <h1>Lista de Funcionários</h1>
 
-    <table border="1">
+    <table>
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Nome</th>
                 <th>Cargo</th>
                 <th>Salário</th>
+                <th>Departamento</th>
+                <th>Data de Admissão</th>
+                <th>Data de Nascimento</th>
+                <th>Cidade</th>
+                <th>Estado</th>
+                <th>Status</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Nível de Experiência</th>
+                <th>Sexo</th>
+                <th>Gestor Direto</th>
+                <th>Bônus</th>
             </tr>
         </thead>
         <tbody>
             <!-- Loop sobre os funcionários -->
             <tr th:each="funcionario : ${page.content}">
+                <td th:text="${funcionario.id}"></td>
                 <td th:text="${funcionario.nome}"></td>
                 <td th:text="${funcionario.cargo}"></td>
                 <td th:text="${funcionario.salario}"></td>
+                <td th:text="${funcionario.departamento}"></td>
+                <td th:text="${funcionario.dataAdmissao}"></td>
+                <td th:text="${funcionario.dataNascimento}"></td>
+                <td th:text="${funcionario.cidade}"></td>
+                <td th:text="${funcionario.estado}"></td>
+                <td th:text="${funcionario.statusEmprego}"></td>
+                <td th:text="${funcionario.email}"></td>
+                <td th:text="${funcionario.telefone}"></td>
+                <td th:text="${funcionario.nivelExperiencia}"></td>
+                <td th:text="${funcionario.sexo}"></td>
+                <td th:text="${funcionario.gestorDireto}"></td>
+                <td th:text="${funcionario.bonus}"></td>
             </tr>
         </tbody>
     </table>
 
     <!-- Paginação -->
-    <div>
-        <span th:text="'Página: ' + ${page.number + 1} + ' de ' + ${page.totalPages}"></span>
-        <a th:if="${!page.first}" th:href="@{/funcionarios(page=${page.number - 1}, size=${page.size})}">Anterior</a>
-        <a th:if="${!page.last}" th:href="@{/funcionarios(page=${page.number + 1}, size=${page.size})}">Próxima</a>
+    <div class="pagination">
+        <a th:if="${!page.first}" th:href="@{/funcionarios-html(page=${page.number - 1}, size=${page.size})}">Anterior</a>
+        <span th:text="'Página: ' + (${page.number + 1}) + ' de ' + ${page.totalPages}"></span>
+        <a th:if="${!page.last}" th:href="@{/funcionarios-html(page=${page.number + 1}, size=${page.size})}">Próxima</a>
     </div>
 </body>
 </html>
+
+

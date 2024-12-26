@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Funcionários com Salário</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .pagination a {
+            padding: 5px 10px;
+            border: 1px solid #000;
+            text-decoration: none;
+            color: #000;
+        }
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Funcionários com Salário</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Salário</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="funcionario : ${page.content}">
+                <td th:text="${funcionario.id}"></td>
+                <td th:text="${funcionario.nome}"></td>
+                <td th:text="${funcionario.salario}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Paginação -->
+    <div class="pagination">
+        <a th:if="${!page.first}" th:href="@{/funcionarios-html/salarios-html(page=${page.number - 1}, size=${page.size})}">Anterior</a>
+        <span th:text="'Página: ' + (${page.number + 1}) + ' de ' + ${page.totalPages}"></span>
+        <a th:if="${!page.last}" th:href="@{/funcionarios-html/salarios-html(page=${page.number + 1}, size=${page.size})}">Próxima</a>
+    </div>
+</body>
+</html>
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.Funcionario;
+import com.example.demo.model.FuncionarioSalarioDTO;
 import com.example.demo.model.RelatorioCargo;
 import com.example.demo.model.RelatorioDepartamento;
 
@@ -25,13 +26,14 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
            "FROM Funcionario f GROUP BY f.cargo")
     List<RelatorioCargo> countFuncionariosPorCargo();
 
+    // Consulta para obter o total de salários por departamento
     @Query("SELECT new com.example.demo.model.RelatorioDepartamento(f.departamento, SUM(f.salario)) " +
-    	       "FROM Funcionario f GROUP BY f.departamento")
-    	List<RelatorioDepartamento> somaSalariosPorDepartamento();
+           "FROM Funcionario f GROUP BY f.departamento")
+    List<RelatorioDepartamento> somaSalariosPorDepartamento();
 
-
-
-
-
+    // Consulta para listar apenas id, nome e salário de funcionários
+    @Query("SELECT new com.example.demo.model.FuncionarioSalarioDTO(f.id, f.nome, f.salario) " +
+    	       "FROM Funcionario f")
+    	Page<FuncionarioSalarioDTO> findFuncionariosComSalario(Pageable pageable);
 
 }
