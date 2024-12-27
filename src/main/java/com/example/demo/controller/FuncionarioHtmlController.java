@@ -8,9 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/funcionarios-html")
@@ -19,13 +17,28 @@ public class FuncionarioHtmlController {
     @Autowired
     private DashboardService dashboardService;
 
-    // Página HTML com lista completa de funcionários
+    // Página HTML com lista completa de funcionários ou busca por ID
     @GetMapping
-    public String listarTodosFuncionariosHtml(
+    public String listarOuBuscarFuncionarioHtml(
+            @RequestParam(required = false) Long id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model) {
 
+        if (id != null) {
+            // Buscar funcionário por ID
+            return dashboardService.buscarFuncionarioPorId(id)
+                    .map(funcionario -> {
+                        model.addAttribute("funcionario", funcionario);
+                        return "funcionario-detalhes";
+                    })
+                    .orElseGet(() -> {
+                        model.addAttribute("error", "Funcionário não encontrado");
+                        return "funcionario-detalhes";
+                    });
+        }
+
+        // Lista completa com paginação
         Page<Funcionario> funcionariosPage = dashboardService.getFuncionariosPaginados(PageRequest.of(page, size));
         model.addAttribute("page", funcionariosPage);
         model.addAttribute("funcionarios", funcionariosPage.getContent());
@@ -47,3 +60,4 @@ public class FuncionarioHtmlController {
         return "funcionarios-salario";
     }
 }
+

@@ -8,10 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class DashboardService {
@@ -58,5 +55,10 @@ public class DashboardService {
 
         // Adicione outras agregações ou informações aqui, se necessário
         return dados;
+    }
+
+    // Buscar funcionário por ID
+    public Optional<Funcionario> buscarFuncionarioPorId(Long id) {
+        return funcionarioRepository.findById(id);
     }
 }

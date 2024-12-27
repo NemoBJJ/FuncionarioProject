@@ -32,11 +32,50 @@
         .pagination a:hover {
             background-color: #ddd;
         }
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <h1>Lista de Funcionários</h1>
 
+    <!-- Formulário de busca por ID -->
+    <div class="search-container">
+        <form th:action="@{/funcionarios-html}" method="get">
+            <label for="id">Buscar Funcionário por ID:</label>
+            <input type="number" id="id" name="id" placeholder="Digite o ID" required>
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <!-- Resultado da busca -->
+    <div th:if="${funcionario}">
+        <h2>Resultado da Busca</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Cargo</th>
+                    <th>Salário</th>
+                    <th>Departamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td th:text="${funcionario.id}"></td>
+                    <td th:text="${funcionario.nome}"></td>
+                    <td th:text="${funcionario.cargo}"></td>
+                    <td th:text="${funcionario.salario}"></td>
+                    <td th:text="${funcionario.departamento}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tabela de todos os funcionários -->
     <table>
         <thead>
             <tr>
@@ -59,7 +98,6 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Loop sobre os funcionários -->
             <tr th:each="funcionario : ${page.content}">
                 <td th:text="${funcionario.id}"></td>
                 <td th:text="${funcionario.nome}"></td>
@@ -89,5 +127,4 @@
     </div>
 </body>
 </html>
-
 

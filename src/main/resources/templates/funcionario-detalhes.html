@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Detalhes do Funcionário</title>
+</head>
+<body>
+    <h1>Detalhes do Funcionário</h1>
+    <div th:if="${funcionario}">
+        <p><strong>ID:</strong> <span th:text="${funcionario.id}"></span></p>
+        <p><strong>Nome:</strong> <span th:text="${funcionario.nome}"></span></p>
+        <p><strong>Cargo:</strong> <span th:text="${funcionario.cargo}"></span></p>
+        <p><strong>Salário:</strong> <span th:text="${funcionario.salario}"></span></p>
+        <p><strong>Departamento:</strong> <span th:text="${funcionario.departamento}"></span></p>
+    </div>
+    <div th:if="${error}">
+        <p th:text="${error}" style="color: red;"></p>
+    </div>
+    <a href="/funcionarios-html">Voltar</a>
+</body>
+</html>
