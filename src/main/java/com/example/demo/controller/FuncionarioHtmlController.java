@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-@RequestMapping("/funcionarios-html") // Endpoints para Thymeleaf
+@RequestMapping("/funcionarios-html")
 public class FuncionarioHtmlController {
 
     @Autowired
@@ -30,11 +30,11 @@ public class FuncionarioHtmlController {
         model.addAttribute("page", funcionariosPage);
         model.addAttribute("funcionarios", funcionariosPage.getContent());
 
-        return "funcionarios"; // Template Thymeleaf
+        return "funcionarios";
     }
 
     // Página HTML com lista de funcionários com nome e salário
-    @GetMapping("/salarios-html")
+    @GetMapping("/salarios")
     public String listarFuncionariosComSalarioHtml(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -44,8 +44,6 @@ public class FuncionarioHtmlController {
         model.addAttribute("page", funcionariosPage);
         model.addAttribute("funcionarios", funcionariosPage.getContent());
 
-        return "funcionarios-salario"; // Template Thymeleaf
+        return "funcionarios-salario";
     }
 }
-
-

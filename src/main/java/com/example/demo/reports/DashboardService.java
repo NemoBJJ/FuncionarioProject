@@ -8,10 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
 
 @Service
 public class DashboardService {
@@ -29,27 +29,34 @@ public class DashboardService {
         return funcionarioRepository.findFuncionariosComSalario(pageable);
     }
 
-    // Busca todos os funcionários (sem paginação)
-    public List<Funcionario> getTodosFuncionarios() {
-        return funcionarioRepository.findAll();
-    }
-
     // Dados agregados para o dashboard
     public Map<String, Object> getDadosDashboard() {
         Map<String, Object> dados = new HashMap<>();
 
-        // Consulta ao banco para obter os dados dos cargos
+        // Consulta ao banco para obter cargos e contagem de funcionários
         List<Object[]> cargosFromDb = funcionarioRepository.findFuncionariosPorCargo();
         List<Map<String, Object>> cargos = new ArrayList<>();
 
-        for (Object[] cargo : cargosFromDb) {
+        for (Object[] result : cargosFromDb) {
             Map<String, Object> cargoData = new HashMap<>();
-            cargoData.put("cargo", cargo[0]); // Nome do cargo
-            cargoData.put("quantidade", cargo[1]); // Quantidade de funcionários
+            cargoData.put("cargo", result[0]); // Nome do cargo
+            cargoData.put("quantidade", result[1]); // Quantidade de funcionários
             cargos.add(cargoData);
         }
 
-        dados.put("cargos", cargos); // Adiciona a lista de cargos no mapa de dados
+        // Adiciona os dados dos cargos ao mapa final
+        dados.put("cargos", cargos);
+
+        // Adiciona também a contagem agregada por cargo para outras possíveis utilizações
+        Map<String, Long> cargoCounts = new HashMap<>();
+        for (Object[] result : cargosFromDb) {
+            String cargo = (String) result[0];
+            Long count = (Long) result[1];
+            cargoCounts.put(cargo, count);
+        }
+        dados.put("quantidadePorCargo", cargoCounts);
+
+        // Adicione outras agregações ou informações aqui, se necessário
         return dados;
     }
 }

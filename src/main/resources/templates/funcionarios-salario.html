@@ -32,6 +32,9 @@
         .pagination a:hover {
             background-color: #ddd;
         }
+        .pagination span {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -56,12 +59,16 @@
 
     <!-- Paginação -->
     <div class="pagination">
-        <a th:if="${!page.first}" th:href="@{/funcionarios-html/salarios-html(page=${page.number - 1}, size=${page.size})}">Anterior</a>
-        <span th:text="'Página: ' + (${page.number + 1}) + ' de ' + ${page.totalPages}"></span>
-        <a th:if="${!page.last}" th:href="@{/funcionarios-html/salarios-html(page=${page.number + 1}, size=${page.size})}">Próxima</a>
+        <a th:if="${!page.first}" 
+           th:href="@{/funcionarios-html/salarios(page=${page.number - 1}, size=${page.size})}">
+           Anterior
+        </a>
+        <span th:text="'Página ' + (${page.number + 1}) + ' de ' + ${page.totalPages}"></span>
+        <a th:if="${!page.last}" 
+           th:href="@{/funcionarios-html/salarios(page=${page.number + 1}, size=${page.size})}">
+           Próxima
+        </a>
     </div>
 </body>
 </html>
 
-</body>
-</html>
