@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/funcionarios") // Endpoints para JSON
-@CrossOrigin(origins = "http://localhost:3000") // Permite requisições do frontend
+@CrossOrigin(origins = "http://localhost:3001") // Permite requisições do frontend
 public class FuncionarioController {
 
     @Autowired
@@ -40,4 +40,6 @@ public class FuncionarioController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+    
+    
 }

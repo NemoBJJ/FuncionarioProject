@@ -13,7 +13,7 @@ Sistema de Gerenciamento de Funcionários.
 
 ## 📂 Funcionalidades
 - Cadastro, edição e exclusão de funcionários.
-- Relatórios exportáveis em PDF, CSV e Excel.
+- Relatórios exportáveis em PDF e CSV.
 - Visualização de dashboards com gráficos interativos.
 
 ## 🛠️ Como Rodar o Projeto
