@@ -1,16 +1,19 @@
 FuncionarioProject
 Sistema de Gerenciamento de Funcionários.
 
-## 🚀 Problema Resolvido
+## 🚀 Objetivo
 - Automatiza o gerenciamento de dados de funcionários em empresas.
 - Facilita a análise de métricas como número de funcionários por cargo e salários médios.
 - Facilita o Monitoramento de diversas variáveis relacionadas aos funcionários.
 
-## 🔧 Tecnologias Utilizadas
-- **Backend:** Java, Spring Boot, Hibernate, Maven.
-- **Frontend:** React, Axios, CSS.
-- **Banco de Dados:** MySQL.
+🛠 Integrated Technologies 
+- **Backend:** Java, Spring Boot, Hibernate, Maven  
+- **Frontend:** React, Axios, CSS  
+- **Database:** Advanced SQL, MySQL WorkBench  
+- **Cloud & Infrastructure:** AWS (EC2, LoadBalancer, SSL Certificates)  
+- **Netlify:** CI/CD, CDN, DNS Manager
 
+  
 ## 📂 Funcionalidades
 - Cadastro, edição e exclusão de funcionários.
 - Relatórios exportáveis em PDF e CSV.
@@ -27,7 +30,3 @@ Sistema de Gerenciamento de Funcionários.
 
 4. Inicie o FrontEnd  : npm start
 
-## 🌟 Resultados
-*Melhorou a organização de dados de funcionários.
-*Gerou relatórios e insights úteis para a tomada de decisão.
-*Ofereceu uma interface amigável e interativa para os usuários.
