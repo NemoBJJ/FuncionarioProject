@@ -21,9 +21,8 @@ public class Funcionario {
     private String nome;
     private String cargo;
 
-    @Column(name = "salario (R$)", precision = 19, scale = 2) // Ajuste conforme necessário
+    @Column(name = "salario (R$)", precision = 19, scale = 2)
     private BigDecimal salario;
-
 
     private String departamento;
     private LocalDate dataAdmissao;
@@ -37,6 +36,9 @@ public class Funcionario {
     private String sexo;
     private String gestorDireto;
     private Double bonus;
+
+    @Column(columnDefinition = "TEXT")
+    private String faceDescriptor;
 
     // Getters e Setters
     public Long getId() {
@@ -165,5 +167,13 @@ public class Funcionario {
 
     public void setBonus(Double bonus) {
         this.bonus = bonus;
+    }
+
+    public String getFaceDescriptor() {
+        return faceDescriptor;
+    }
+
+    public void setFaceDescriptor(String faceDescriptor) {
+        this.faceDescriptor = faceDescriptor;
     }
 }

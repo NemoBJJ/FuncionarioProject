@@ -1,0 +1,1183 @@
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\FuncionarioProjectApplication.java =====
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+@SpringBootApplication
+@EnableCaching
+public class FuncionarioProjectApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(FuncionarioProjectApplication.class, args);
+	}
+
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\LambdaHandler.java =====
+package com.example.demo;
+
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
+public class LambdaHandler implements RequestHandler<String, String> {
+
+    @Override
+    public String handleRequest(String input, Context context) {
+        return "Lambda Funcionando! Input recebido: " + input;
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\config\CacheConfig.java =====
+package com.example.demo.config;
+
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Arrays;
+
+@Configuration
+@EnableCaching
+public class CacheConfig {
+
+    @Bean
+    public ConcurrentMapCacheManager cacheManager() {
+        ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
+        cacheManager.setCacheNames(Arrays.asList("relatoriosPorCargo", "relatoriosPorDepartamento"));
+        return cacheManager;
+    }
+    
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\config\CacheConfigurationInspector.java =====
+package com.example.demo.config;
+
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CacheConfigurationInspector {
+
+    private final CacheManager cacheManager;
+
+    public CacheConfigurationInspector(CacheManager cacheManager) {
+        this.cacheManager = cacheManager;
+    }
+
+    public void verificarCache(String cacheName) {
+        var cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            System.out.println("Conteúdo do cache '" + cacheName + "': " + cache.getNativeCache());
+        } else {
+            System.out.println("Cache '" + cacheName + "' não encontrado.");
+        }
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\config\SecurityConfig.java =====
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable()) // Desabilita CSRF
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/funcionarios/salario/**").permitAll() // Libera o endpoint de salários
+                .requestMatchers("/dashboard/**", "/relatorios/**").authenticated() // Rotas protegidas
+                .anyRequest().permitAll() // Outras rotas liberadas
+            )
+            .httpBasic(); // Habilita autenticação HTTP Basic
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(); // Criptografar senhas
+    }
+
+    @Bean
+    public InMemoryUserDetailsManager userDetailsService() {
+        UserDetails user = User.withUsername("admin")
+            .password(passwordEncoder().encode("senha123"))
+            .roles("ADMIN")
+            .build();
+
+        return new InMemoryUserDetailsManager(user);
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\config\WebConfig.java =====
+// WebConfig.java atualizado
+// WebConfig.java atualizado
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig {
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:3002") // Permite o frontend
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowCredentials(true);
+            }
+        };
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\controller\DashBoardController.java =====
+package com.example.demo.controller;
+
+import com.example.demo.reports.DashboardService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/dashboard")
+public class DashBoardController {
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    // Endpoint para obter dados do dashboard
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getDashboardDados() {
+        Map<String, Object> dados = dashboardService.getDadosDashboard();
+        return ResponseEntity.ok(dados);
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\controller\DashboardViewController.java =====
+package com.example.demo.controller;
+
+import com.example.demo.reports.DashboardService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/dashboard")
+public class DashboardViewController {
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @GetMapping
+    public String showDashboard(Model model) throws Exception {
+        // Obtém os dados do serviço
+        var dados = dashboardService.getDadosDashboard();
+
+        // Converte os dados para JSON
+        String dadosJson = objectMapper.writeValueAsString(dados);
+
+        // Adiciona os dados JSON ao modelo para Thymeleaf
+        model.addAttribute("dadosJson", dadosJson);
+
+        return "dashboard"; // Nome do arquivo HTML
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\controller\ExportacaoRelatorioController.java =====
+package com.example.demo.controller;
+
+import com.example.demo.model.RelatorioCargo;
+import com.example.demo.model.RelatorioDepartamento;
+import com.example.demo.reports.CSVExporter;
+import com.example.demo.reports.RelatorioService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.util.List;
+
+@RestController
+@RequestMapping("/exportacao/relatorios")
+public class ExportacaoRelatorioController {
+
+    private final RelatorioService relatorioService;
+    private final CSVExporter csvExporter;
+
+    public ExportacaoRelatorioController(RelatorioService relatorioService, CSVExporter csvExporter) {
+        this.relatorioService = relatorioService;
+        this.csvExporter = csvExporter;
+    }
+
+    @GetMapping("/cargos/csv")
+    public void exportRelatoriosPorCargoCSV(HttpServletResponse response) throws IOException {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"));
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"relatorios_cargos_" + timestamp + ".csv\"");
+
+        List<RelatorioCargo> relatorios = relatorioService.obterRelatoriosPorCargo();
+        csvExporter.exportRelatoriosPorCargo(relatorios, response.getWriter());
+    }
+
+
+    @GetMapping("/departamentos/csv")
+    public void exportRelatoriosPorDepartamentoCSV(HttpServletResponse response) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"relatorios_departamentos.csv\"");
+
+        List<RelatorioDepartamento> relatorios = relatorioService.obterRelatoriosPorDepartamento();
+        csvExporter.exportRelatoriosPorDepartamento(relatorios, response.getWriter());
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\controller\FuncionarioController.java =====
+package com.example.demo.controller;
+
+import com.example.demo.entity.Funcionario;
+import com.example.demo.entity.RegistroPonto;
+import com.example.demo.model.FuncionarioSalarioDTO;
+import com.example.demo.reports.DashboardService;
+import com.example.demo.repository.RegistroPontoRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/funcionarios")
+@CrossOrigin(origins = "http://localhost:3001")
+public class FuncionarioController {
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    @Autowired
+    private RegistroPontoRepository registroPontoRepository;
+
+    @GetMapping
+    public Page<Funcionario> listarTodosFuncionariosJson(Pageable pageable) {
+        return dashboardService.getFuncionariosPaginados(pageable);
+    }
+
+    @GetMapping("/salarios-json")
+    public Page<FuncionarioSalarioDTO> listarFuncionariosComSalarioJson(Pageable pageable) {
+        return dashboardService.getFuncionariosComSalario(pageable);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Funcionario> buscarFuncionarioPorId(@PathVariable Long id) {
+        return dashboardService.buscarFuncionarioPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/face")
+    public ResponseEntity<?> cadastrarFace(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        try {
+            Funcionario func = dashboardService.buscarFuncionarioPorId(id)
+                    .orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
+
+            Object descriptor = body.get("descriptor");
+            ObjectMapper mapper = new ObjectMapper();
+            String descriptorJson = mapper.writeValueAsString(descriptor);
+
+            func.setFaceDescriptor(descriptorJson);
+            dashboardService.salvarFuncionario(func);
+
+            System.out.println("✅ Face cadastrada para: " + func.getNome());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Face cadastrada com sucesso");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reconhecer")
+    public ResponseEntity<?> reconhecerFace(@RequestBody Map<String, Object> body) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Double> descriptorRecebido = mapper.convertValue(body.get("descriptor"),
+                new com.fasterxml.jackson.core.type.TypeReference<List<Double>>() {});
+
+            List<Funcionario> funcionarios = dashboardService.listarTodosFuncionarios();
+
+            for (Funcionario func : funcionarios) {
+                if (func.getFaceDescriptor() != null && !func.getFaceDescriptor().isEmpty()) {
+                    List<Double> descriptorSalvo = mapper.readValue(func.getFaceDescriptor(),
+                        new com.fasterxml.jackson.core.type.TypeReference<List<Double>>() {});
+
+                    double similaridade = calcularSimilaridade(descriptorRecebido, descriptorSalvo);
+                    System.out.println("Similaridade com " + func.getNome() + ": " + similaridade);
+
+                    if (similaridade > 0.6) {
+                        // REGISTRA O PONTO NO BANCO
+                        RegistroPonto registro = new RegistroPonto();
+                        registro.setFuncionarioId(func.getId());
+                        registro.setFuncionarioNome(func.getNome());
+                        registro.setDataHora(LocalDateTime.now());
+                        registro.setTipo("ENTRADA");
+                        registro.setSimilaridade(similaridade);
+                        registroPontoRepository.save(registro);
+                        
+                        System.out.println("✅ Ponto registrado para: " + func.getNome() + " às " + registro.getDataHora());
+
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("success", true);
+                        response.put("nome", func.getNome());
+                        response.put("cargo", func.getCargo());
+                        response.put("mensagem", "✅ Ponto registrado com sucesso!");
+                        return ResponseEntity.ok(response);
+                    }
+                }
+            }
+
+            return ResponseEntity.status(401).body(Map.of("error", "Face não reconhecida"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/ponto/historico")
+    public ResponseEntity<List<RegistroPonto>> listarHistoricoPonto() {
+        return ResponseEntity.ok(registroPontoRepository.findAllByOrderByDataHoraDesc());
+    }
+
+    private double calcularSimilaridade(List<Double> desc1, List<Double> desc2) {
+        double soma = 0.0;
+        for (int i = 0; i < desc1.size(); i++) {
+            soma += Math.pow(desc1.get(i) - desc2.get(i), 2);
+        }
+        return 1.0 / (1.0 + Math.sqrt(soma));
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\controller\FuncionarioHtmlController.java =====
+package com.example.demo.controller;
+
+import com.example.demo.entity.Funcionario;
+import com.example.demo.model.FuncionarioSalarioDTO;
+import com.example.demo.reports.DashboardService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+@Controller
+@RequestMapping("/funcionarios-html")
+public class FuncionarioHtmlController {
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    // Página HTML com lista completa de funcionários ou busca por ID
+    @GetMapping
+    public String listarOuBuscarFuncionarioHtml(
+            @RequestParam(required = false) Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+
+        if (id != null) {
+            // Buscar funcionário por ID
+            return dashboardService.buscarFuncionarioPorId(id)
+                    .map(funcionario -> {
+                        model.addAttribute("funcionario", funcionario);
+                        return "funcionario-detalhes";
+                    })
+                    .orElseGet(() -> {
+                        model.addAttribute("error", "Funcionário não encontrado");
+                        return "funcionario-detalhes";
+                    });
+        }
+
+        // Lista completa com paginação
+        Page<Funcionario> funcionariosPage = dashboardService.getFuncionariosPaginados(PageRequest.of(page, size));
+        model.addAttribute("page", funcionariosPage);
+        model.addAttribute("funcionarios", funcionariosPage.getContent());
+
+        return "funcionarios";
+    }
+
+    // Página HTML com lista de funcionários com nome e salário
+    @GetMapping("/salarios")
+    public String listarFuncionariosComSalarioHtml(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+
+        Page<FuncionarioSalarioDTO> funcionariosPage = dashboardService.getFuncionariosComSalario(PageRequest.of(page, size));
+        model.addAttribute("page", funcionariosPage);
+        model.addAttribute("funcionarios", funcionariosPage.getContent());
+
+        return "funcionarios-salario";
+    }
+}
+
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\controller\HomeController.java =====
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HomeController {
+
+    @GetMapping("/")
+    public String home() {
+        return "Bem-vindo à aplicação de gerenciamento de funcionários!";
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\controller\RelatorioController.java =====
+package com.example.demo.controller;
+
+import com.example.demo.model.RelatorioCargo;
+import com.example.demo.model.RelatorioDepartamento;
+import com.example.demo.reports.RelatorioService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/relatorios")
+public class RelatorioController {
+
+    private final RelatorioService relatorioService;
+    private final CacheManager cacheManager;
+
+    @Autowired
+    public RelatorioController(RelatorioService relatorioService, CacheManager cacheManager) {
+        this.relatorioService = relatorioService;
+        this.cacheManager = cacheManager;
+    }
+
+    @GetMapping("/cargos")
+    public List<RelatorioCargo> getRelatoriosPorCargo() {
+        return relatorioService.obterRelatoriosPorCargo();
+    }
+
+    @GetMapping("/departamentos")
+    public List<RelatorioDepartamento> getRelatoriosPorDepartamento() {
+        return relatorioService.obterRelatoriosPorDepartamento();
+    }
+
+    @GetMapping("/cache/verificar")
+    public String verificarCache() {
+        StringBuilder resultado = new StringBuilder();
+
+        verificarCacheInterno("relatoriosPorCargo", resultado);
+        verificarCacheInterno("relatoriosPorDepartamento", resultado);
+
+        return resultado.toString();
+    }
+
+    private void verificarCacheInterno(String cacheName, StringBuilder resultado) {
+        Cache cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            Object valor = cache.get(cacheName.equals("relatoriosPorCargo") ? "cargo" : "departamento");
+            resultado.append("Cache '").append(cacheName).append("' encontrado. Valor em cache: ")
+                     .append(valor != null ? valor : "Nulo").append("\n");
+        } else {
+            resultado.append("Cache '").append(cacheName).append("' não encontrado.\n");
+        }
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\entity\Funcionario.java =====
+package com.example.demo.entity;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "funcionarios")
+public class Funcionario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nome;
+    private String cargo;
+
+    @Column(name = "salario (R$)", precision = 19, scale = 2)
+    private BigDecimal salario;
+
+    private String departamento;
+    private LocalDate dataAdmissao;
+    private LocalDate dataNascimento;
+    private String cidade;
+    private String estado;
+    private String statusEmprego;
+    private String email;
+    private String telefone;
+    private String nivelExperiencia;
+    private String sexo;
+    private String gestorDireto;
+    private Double bonus;
+
+    @Column(columnDefinition = "TEXT")
+    private String faceDescriptor;
+
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getCargo() {
+        return cargo;
+    }
+
+    public void setCargo(String cargo) {
+        this.cargo = cargo;
+    }
+
+    public BigDecimal getSalario() {
+        return salario;
+    }
+
+    public void setSalario(BigDecimal salario) {
+        this.salario = salario;
+    }
+
+    public String getDepartamento() {
+        return departamento;
+    }
+
+    public void setDepartamento(String departamento) {
+        this.departamento = departamento;
+    }
+
+    public LocalDate getDataAdmissao() {
+        return dataAdmissao;
+    }
+
+    public void setDataAdmissao(LocalDate dataAdmissao) {
+        this.dataAdmissao = dataAdmissao;
+    }
+
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
+    }
+
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
+    }
+
+    public String getCidade() {
+        return cidade;
+    }
+
+    public void setCidade(String cidade) {
+        this.cidade = cidade;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getStatusEmprego() {
+        return statusEmprego;
+    }
+
+    public void setStatusEmprego(String statusEmprego) {
+        this.statusEmprego = statusEmprego;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public String getNivelExperiencia() {
+        return nivelExperiencia;
+    }
+
+    public void setNivelExperiencia(String nivelExperiencia) {
+        this.nivelExperiencia = nivelExperiencia;
+    }
+
+    public String getSexo() {
+        return sexo;
+    }
+
+    public void setSexo(String sexo) {
+        this.sexo = sexo;
+    }
+
+    public String getGestorDireto() {
+        return gestorDireto;
+    }
+
+    public void setGestorDireto(String gestorDireto) {
+        this.gestorDireto = gestorDireto;
+    }
+
+    public Double getBonus() {
+        return bonus;
+    }
+
+    public void setBonus(Double bonus) {
+        this.bonus = bonus;
+    }
+
+    public String getFaceDescriptor() {
+        return faceDescriptor;
+    }
+
+    public void setFaceDescriptor(String faceDescriptor) {
+        this.faceDescriptor = faceDescriptor;
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\entity\RegistroPonto.java =====
+package com.example.demo.entity;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "registro_ponto")
+public class RegistroPonto {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "funcionario_id")
+    private Long funcionarioId;
+    
+    @Column(name = "funcionario_nome")
+    private String funcionarioNome;
+    
+    @Column(name = "data_hora")
+    private LocalDateTime dataHora;
+    
+    private String tipo;
+    private Double similaridade;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getFuncionarioId() { return funcionarioId; }
+    public void setFuncionarioId(Long funcionarioId) { this.funcionarioId = funcionarioId; }
+
+    public String getFuncionarioNome() { return funcionarioNome; }
+    public void setFuncionarioNome(String funcionarioNome) { this.funcionarioNome = funcionarioNome; }
+
+    public LocalDateTime getDataHora() { return dataHora; }
+    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
+
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
+
+    public Double getSimilaridade() { return similaridade; }
+    public void setSimilaridade(Double similaridade) { this.similaridade = similaridade; }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\model\FuncionarioSalarioDTO.java =====
+package com.example.demo.model;
+
+import java.math.BigDecimal;
+
+public class FuncionarioSalarioDTO {
+    private Long id;
+    private String nome;
+    private BigDecimal salario;
+
+    // Construtor padrão (obrigatório para o Hibernate)
+    public FuncionarioSalarioDTO() {
+    }
+
+    // Construtor com parâmetros (necessário para a consulta HQL)
+    public FuncionarioSalarioDTO(Long id, String nome, BigDecimal salario) {
+        this.id = id;
+        this.nome = nome;
+        this.salario = salario;
+    }
+
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public BigDecimal getSalario() {
+        return salario;
+    }
+
+    public void setSalario(BigDecimal salario) {
+        this.salario = salario;
+    }
+}
+
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\model\RelatorioCargo.java =====
+package com.example.demo.model;
+
+public class RelatorioCargo {
+    private String cargo;
+    private Long quantidadeFuncionarios;
+
+    public RelatorioCargo(String cargo, Long quantidadeFuncionarios) {
+        this.cargo = cargo;
+        this.quantidadeFuncionarios = quantidadeFuncionarios;
+    }
+
+    public String getCargo() {
+        return cargo;
+    }
+
+    public void setCargo(String cargo) {
+        this.cargo = cargo;
+    }
+
+    public Long getQuantidadeFuncionarios() {
+        return quantidadeFuncionarios;
+    }
+
+    public void setQuantidadeFuncionarios(Long quantidadeFuncionarios) {
+        this.quantidadeFuncionarios = quantidadeFuncionarios;
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\model\RelatorioDepartamento.java =====
+package com.example.demo.model;
+
+import java.math.BigDecimal;
+
+public class RelatorioDepartamento {
+    private String departamento;
+    private BigDecimal somaSalarios;
+
+    // Construtor padrão necessário para o Hibernate
+    public RelatorioDepartamento() {
+    }
+
+    // Construtor utilizado na consulta JPQL
+    public RelatorioDepartamento(String departamento, BigDecimal somaSalarios) {
+        this.departamento = departamento;
+        this.somaSalarios = somaSalarios;
+    }
+
+    // Getters e Setters
+    public String getDepartamento() {
+        return departamento;
+    }
+
+    public void setDepartamento(String departamento) {
+        this.departamento = departamento;
+    }
+
+    public BigDecimal getSomaSalarios() {
+        return somaSalarios;
+    }
+
+    public void setSomaSalarios(BigDecimal somaSalarios) {
+        this.somaSalarios = somaSalarios;
+    }
+
+    @Override
+    public String toString() {
+        return "RelatorioDepartamento{" +
+                "departamento='" + departamento + '\'' +
+                ", somaSalarios=" + somaSalarios +
+                '}';
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\reports\CacheInspector.java =====
+package com.example.demo.reports;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CacheInspector {
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    public void verificarCache(String cacheName, String chave) {
+        Cache cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            Object valor = cache.get(chave); // Insira a chave correspondente
+            System.out.println("Valor em cache para chave " + chave + ": " + valor);
+        } else {
+            System.out.println("Cache '" + cacheName + "' não encontrado.");
+        }
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\reports\CSVExporter.java =====
+package com.example.demo.reports;
+
+import com.example.demo.model.RelatorioCargo;
+import com.example.demo.model.RelatorioDepartamento;
+import com.opencsv.CSVWriter;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+@Service
+public class CSVExporter {
+
+    public void exportRelatoriosPorCargo(List<RelatorioCargo> relatorios, PrintWriter writer) throws IOException {
+        try (CSVWriter csvWriter = new CSVWriter(writer)) {
+            // Header
+        	csvWriter.writeNext(new String[]{"CARGO", "QUANTIDADE_DE_FUNCIONÁRIOS"});
+
+            // Dados
+            for (RelatorioCargo relatorio : relatorios) {
+                csvWriter.writeNext(new String[]{
+                        relatorio.getCargo(),
+                        String.valueOf(relatorio.getQuantidadeFuncionarios())
+                });
+            }
+        }
+    }
+
+    public void exportRelatoriosPorDepartamento(List<RelatorioDepartamento> relatorios, PrintWriter writer) throws IOException {
+        try (CSVWriter csvWriter = new CSVWriter(writer)) {
+            // Header
+            csvWriter.writeNext(new String[]{"Departamento", "Total de Salários"});
+            // Dados
+            for (RelatorioDepartamento relatorio : relatorios) {
+                csvWriter.writeNext(new String[]{
+                        relatorio.getDepartamento(),
+                        String.valueOf(relatorio.getSomaSalarios())
+                });
+            }
+        }
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\reports\DashboardService.java =====
+package com.example.demo.reports;
+
+import com.example.demo.entity.Funcionario;
+import com.example.demo.model.FuncionarioSalarioDTO;
+import com.example.demo.repository.FuncionarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class DashboardService {
+
+    @Autowired
+    private FuncionarioRepository funcionarioRepository;
+
+    // Paginação de funcionários
+    public Page<Funcionario> getFuncionariosPaginados(Pageable pageable) {
+        return funcionarioRepository.findAll(pageable);
+    }
+
+    // Paginação de funcionários com salário
+    public Page<FuncionarioSalarioDTO> getFuncionariosComSalario(Pageable pageable) {
+        return funcionarioRepository.findFuncionariosComSalario(pageable);
+    }
+
+    // Dados agregados para o dashboard
+    public Map<String, Object> getDadosDashboard() {
+        Map<String, Object> dados = new HashMap<>();
+
+        List<Object[]> cargosFromDb = funcionarioRepository.findFuncionariosPorCargo();
+        List<Map<String, Object>> cargos = new ArrayList<>();
+
+        for (Object[] result : cargosFromDb) {
+            Map<String, Object> cargoData = new HashMap<>();
+            cargoData.put("cargo", result[0]);
+            cargoData.put("quantidade", result[1]);
+            cargos.add(cargoData);
+        }
+
+        dados.put("cargos", cargos);
+
+        Map<String, Long> cargoCounts = new HashMap<>();
+        for (Object[] result : cargosFromDb) {
+            String cargo = (String) result[0];
+            Long count = (Long) result[1];
+            cargoCounts.put(cargo, count);
+        }
+        dados.put("quantidadePorCargo", cargoCounts);
+
+        return dados;
+    }
+
+    // Buscar funcionário por ID
+    public Optional<Funcionario> buscarFuncionarioPorId(Long id) {
+        return funcionarioRepository.findById(id);
+    }
+
+    // Salvar funcionário
+    public Funcionario salvarFuncionario(Funcionario funcionario) {
+        return funcionarioRepository.save(funcionario);
+    }
+
+    // Listar todos os funcionários (sem paginação)
+    public List<Funcionario> listarTodosFuncionarios() {
+        return funcionarioRepository.findAll();
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\reports\RelatorioPDFService.java =====
+package com.example.demo.reports;
+
+import com.example.demo.entity.Funcionario;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
+import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayOutputStream;
+import java.util.stream.Stream;
+import java.util.List;
+
+@Service
+public class RelatorioPDFService {
+
+    public byte[] gerarRelatorioPDF(List<Funcionario> funcionarios) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document document = new Document();
+            PdfWriter.getInstance(document, out);
+
+            document.open();
+
+            // Título estilizado
+            Paragraph title = new Paragraph("Relatório de Funcionários", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20));
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+            document.add(new Paragraph("\n")); // Espaço após o título
+
+            // Configuração da tabela
+            PdfPTable table = new PdfPTable(8); // Número de colunas ajustado
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{1.5f, 2.5f, 3f, 3f, 3f, 2.5f, 2.5f, 3.5f});
+
+            // Cabeçalhos
+            Stream.of("ID", "Nome", "Cargo", "Data de Admissão", "Nível de Experiência", "Salário (R$)", "Bônus (R$)", "Departamento")
+                    .forEach(headerTitle -> {
+                        PdfPCell header = new PdfPCell();
+                        header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                        header.setPhrase(new Phrase(headerTitle, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12)));
+                        header.setHorizontalAlignment(Element.ALIGN_CENTER);
+                        table.addCell(header);
+                    });
+
+            // Dados dos funcionários
+            for (Funcionario funcionario : funcionarios) {
+                // ID
+                PdfPCell idCell = new PdfPCell(new Phrase(funcionario.getId().toString()));
+                idCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(idCell);
+
+                // Nome
+                PdfPCell nomeCell = new PdfPCell(new Phrase(funcionario.getNome()));
+                nomeCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(nomeCell);
+
+                // Cargo
+                table.addCell(funcionario.getCargo());
+
+                // Data de Admissão
+                table.addCell(funcionario.getDataAdmissao() != null ? funcionario.getDataAdmissao().toString() : "Não informado");
+
+                // Nível de Experiência (centralizado)
+                PdfPCell nivelCell = new PdfPCell(new Phrase(funcionario.getNivelExperiencia() != null ? funcionario.getNivelExperiencia() : "Não informado"));
+                nivelCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(nivelCell);
+
+                // Salário
+                PdfPCell salarioCell = new PdfPCell(new Phrase(funcionario.getSalario() != null ? funcionario.getSalario().toString() : "0.0"));
+                salarioCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(salarioCell);
+
+                // Bônus
+                PdfPCell bonusCell = new PdfPCell(new Phrase(funcionario.getBonus() != null ? funcionario.getBonus().toString() : "0.0"));
+                bonusCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(bonusCell);
+
+                // Departamento
+                PdfPCell departamentoCell = new PdfPCell(new Phrase(funcionario.getDepartamento() != null ? funcionario.getDepartamento() : "Não informado"));
+                departamentoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(departamentoCell);
+            }
+
+            document.add(table);
+            document.close();
+
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar PDF", e);
+        }
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\reports\RelatorioService.java =====
+package com.example.demo.reports;
+
+import com.example.demo.model.RelatorioCargo;
+import com.example.demo.model.RelatorioDepartamento;
+import com.example.demo.repository.FuncionarioRepository;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class RelatorioService {
+
+    private final FuncionarioRepository funcionarioRepository;
+
+    public RelatorioService(FuncionarioRepository funcionarioRepository) {
+        this.funcionarioRepository = funcionarioRepository;
+    }
+
+    @Cacheable(value = "relatoriosPorCargo", key = "'cargo'")
+    public List<RelatorioCargo> obterRelatoriosPorCargo() {
+        System.out.println("Método obterRelatoriosPorCargo chamado e executado");
+        return funcionarioRepository.countFuncionariosPorCargo();
+    }
+
+    @Cacheable(value = "relatoriosPorDepartamento", key = "'departamento'")
+    public List<RelatorioDepartamento> obterRelatoriosPorDepartamento() {
+        System.out.println("Método obterRelatoriosPorDepartamento chamado e executado");
+        return funcionarioRepository.somaSalariosPorDepartamento();
+    }
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\repository\FuncionarioRepository.java =====
+package com.example.demo.repository;
+
+import com.example.demo.entity.Funcionario;
+import com.example.demo.model.FuncionarioSalarioDTO;
+import com.example.demo.model.RelatorioCargo;
+import com.example.demo.model.RelatorioDepartamento;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
+
+    // Consulta com paginação e ordenação
+    Page<Funcionario> findAll(Pageable pageable);
+
+    // Consulta para obter a quantidade de funcionários por cargo (em formato genérico)
+    @Query("SELECT f.cargo, COUNT(f) FROM Funcionario f GROUP BY f.cargo")
+    List<Object[]> findFuncionariosPorCargo();
+
+    // Consulta para obter a quantidade de funcionários por cargo (usando RelatorioCargo)
+    @Query("SELECT new com.example.demo.model.RelatorioCargo(f.cargo, COUNT(f)) " +
+           "FROM Funcionario f GROUP BY f.cargo")
+    List<RelatorioCargo> countFuncionariosPorCargo();
+
+    // Consulta para obter o total de salários por departamento
+    @Query("SELECT new com.example.demo.model.RelatorioDepartamento(f.departamento, SUM(f.salario)) " +
+           "FROM Funcionario f GROUP BY f.departamento")
+    List<RelatorioDepartamento> somaSalariosPorDepartamento();
+
+    // Consulta para listar apenas id, nome e salário de funcionários
+    @Query("SELECT new com.example.demo.model.FuncionarioSalarioDTO(f.id, f.nome, f.salario) " +
+    	       "FROM Funcionario f")
+    	Page<FuncionarioSalarioDTO> findFuncionariosComSalario(Pageable pageable);
+
+}
+===== C:\Users\Nemo\Desktop\erp-system\FuncionarioProject\src\main\java\com\example\demo\repository\RegistroPontoRepository.java =====
+package com.example.demo.repository;
+
+import com.example.demo.entity.RegistroPonto;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface RegistroPontoRepository extends JpaRepository<RegistroPonto, Long> {
+    List<RegistroPonto> findAllByOrderByDataHoraDesc();
+}
